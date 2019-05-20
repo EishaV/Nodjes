@@ -63,6 +63,7 @@ LandroidCloud.prototype.start = function () {
     var data = fs.readFileSync(CFG, "utf-8")
     var json = JSON.parse(data)
 
+		this.uuid = json.uuid     // uuid.v4()
     this.email = json.email
     this.pass = json.pass
 		this.webapi = json.webapi // api.worxlandroid.com
@@ -102,10 +103,8 @@ LandroidCloud.prototype.retrieveUserToken = function () {
 
   this.api('POST', "oauth/token", post, function(data) {
     self.token = data.access_token
-    console.log("Access token: " + self.token)
-    console.log("Expires in: " + data.expires_in)
     self.type = data.token_type
-    console.log("Token type: " + self.type)
+    self.debug("Token: " + self.type + " " + self.token)
     if( self.webInfo ) {
 			self.retrieveWebInfo(self.webInfo)
 		} else {
@@ -134,8 +133,8 @@ LandroidCloud.prototype.retrieveWebInfo = function (info) {
     console.log("Data: " + JSON.stringify(data))
 		if( self.webInfo == "users/me" ) console.log("Broker: " + data.mqtt_endpoint)
 		if( self.webInfo == "product-items" ) {
-			console.log("Topic: " + data[0].serial_number)
-			console.log("Topic: " + data[0].mqtt_topics.command_in.replace("/commandIn", ""))
+			console.log("Serial: " + data[0].serial_number)
+			console.log("Topic:  " + data[0].mqtt_topics.command_in.replace("/commandIn", ""))
 		} 
   })
 }
@@ -146,7 +145,7 @@ LandroidCloud.prototype.connectMqtt = function () {
 
   var options = {
     pfx:      this.p12,
-    clientId: "android-" + uuid.v4()
+    clientId: "android-" + this.uuid
   }
 
   if( !fs.existsSync(this.logFile) ) this.prepareCsv()
